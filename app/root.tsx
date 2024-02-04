@@ -1,5 +1,6 @@
+import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
+import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import type { LinksFunction, LoaderFunction } from "@remix-run/cloudflare";
-import { cssBundleHref } from "@remix-run/css-bundle";
 import {
 	Links,
 	LiveReload,
@@ -8,12 +9,23 @@ import {
 	Scripts,
 	ScrollRestoration,
 } from "@remix-run/react";
-
-import { rootAuthLoader } from "@clerk/remix/ssr.server";
-import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
+import stylesheet from "~/globals.css";
 
 export const links: LinksFunction = () => [
-	...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+	{ rel: "stylesheet", href: stylesheet },
+	{
+		rel: "stylesheet",
+		href: "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;400;700&family=Sono:wght@200&display=swap",
+	},
+	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
+	{
+		rel: "preconnect",
+		href: "https://fonts.gstatic.com",
+		crossOrigin: "anonymous",
+	},
+	// 	<link rel="preconnect" href="https://fonts.googleapis.com">
+	// <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	// <link href="https://fonts.googleapis.com/css2?family=Sono:wght@200&display=swap" rel="stylesheet">
 ];
 
 export const loader: LoaderFunction = (args) => rootAuthLoader(args);
@@ -26,6 +38,7 @@ function App() {
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
+
 				<Meta />
 				<Links />
 			</head>
