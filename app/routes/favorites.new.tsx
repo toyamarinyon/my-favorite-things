@@ -12,6 +12,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { LoaderFunctionArgs, json } from "@remix-run/cloudflare";
+import { useFetcher } from "@remix-run/react";
 
 type SelectImage = {
   step: "select-image";
@@ -21,6 +23,12 @@ type EnterDetails = {
   imageUrl: string;
 };
 type AddNewFavoriteFlow = SelectImage | EnterDetails;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export async function loader({}: LoaderFunctionArgs) {
+  await sleep(3000);
+  return json({ analyzeResult: "Hello, world!" });
+}
 
 export default function FavoriteNewPage() {
   const cropperRef = useRef<ReactCropperElement>(null);
@@ -53,6 +61,10 @@ export default function FavoriteNewPage() {
     [],
   );
   const [generating, setGenerating] = useState(false);
+  const analyzeImage = useFetcher<typeof loader>();
+  const handleClickAnalyzeButton = useCallback(() => {
+    analyzeImage.load("/favorites/new");
+  }, [analyzeImage]);
   return (
     <div className="p-4 font-thin">
       <h1 className="text-lg">Add a new favorite</h1>
@@ -115,16 +127,15 @@ export default function FavoriteNewPage() {
                               <TooltipTrigger>
                                 <Button
                                   size="form"
-                                  onClick={() => {
-                                    setGenerating(true);
-                                  }}
+                                  onClick={handleClickAnalyzeButton}
                                 >
-                                  {generating && (
+                                  {analyzeImage.state === "loading" && (
                                     <p className="sono text-xs">Analyzing...</p>
                                   )}
                                   <SparkleIcon
                                     className={clsx("h-4 w-4", {
-                                      "animate-spin": generating,
+                                      "animate-spin":
+                                        analyzeImage.state === "loading",
                                     })}
                                   />
                                 </Button>
