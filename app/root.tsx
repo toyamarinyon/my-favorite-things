@@ -51,26 +51,6 @@ function App() {
         <Links />
       </head>
       <body>
-        <SignedIn>
-          <main>
-            <div className="relative">
-              <div className="flex h-14 items-center px-4">
-                <div className="flex items-center">
-                  <p className="sono mr-1 text-lg">My Favorite Things</p>
-                  <HeartIcon className="h-4 w-4 fill-slate-800 text-slate-800" />
-                </div>
-                <div className="ml-auto flex items-center space-x-4">
-                  <Button type="button">+ Add fav</Button>
-                  <span>/</span>
-                  <UserButton />
-                </div>
-              </div>
-            </div>
-          </main>
-        </SignedIn>
-        <SignedOut>
-          <RedirectToSignIn />
-        </SignedOut>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
@@ -80,4 +60,20 @@ function App() {
   );
 }
 
-export default ClerkApp(App);
+export default ClerkApp(App, {
+  appearance: {
+    variables: {
+      colorPrimary: "hsl(222.2 47.4% 11.2%)",
+      borderRadius: "0",
+    },
+    signIn: {
+      elements: {
+        card: "shadow-none border ",
+        formButtonPrimary: "bg-primary font-thin",
+        headerTitle: "font-thin",
+        headerSubtitle: "font-thin",
+        formFieldLabel: "font-thin",
+      },
+    },
+  },
+});

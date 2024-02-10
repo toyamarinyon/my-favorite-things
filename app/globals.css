@@ -71,14 +71,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }
 
 .sono {
-  font-family: 'Sono', monospace;
+  font-family: "Sono", monospace;
 }
 
 * {
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: "Noto Sans JP", sans-serif;
 }
