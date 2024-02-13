@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, json, redirect } from "@remix-run/cloudflare";
-import { Form, useFetcher } from "@remix-run/react";
+import { Form, useFetcher, useNavigation } from "@remix-run/react";
 import clsx from "clsx";
 import "cropperjs/dist/cropper.css";
 import { SparkleIcon } from "lucide-react";
@@ -34,10 +34,6 @@ type EnterDetails = {
 	imageUrl: string;
 };
 type AddNewFavoriteFlow = SelectImage | EnterDetails;
-
-export async function loader() {
-	return json({});
-}
 
 export async function action(args: ActionFunctionArgs) {
 	try {
@@ -104,6 +100,7 @@ export default function FavoriteNewPage() {
 		}
 		inputRef.current.value = analyzeImage.data.analyze;
 	}, [analyzeImage.data]);
+	const navigation = useNavigation();
 	return (
 		<MainLayout>
 			<div className="p-4 font-thin">
@@ -199,7 +196,12 @@ export default function FavoriteNewPage() {
 												page, etc.)
 											</p>
 										</div>
-										<Button type="submit">Add fav</Button>
+										<Button
+											type="submit"
+											progress={navigation.state === "loading"}
+										>
+											Add fav
+										</Button>
 									</Form>
 								)}
 							</li>
