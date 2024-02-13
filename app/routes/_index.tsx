@@ -17,9 +17,21 @@ export const loader = async (args: LoaderFunctionArgs) => {
 	}
 
 	const db = drizzle(args.context.env as Env);
-	const favorites = await db.query.favorites.findMany({
+	const dbFavorites = await db.query.favorites.findMany({
 		where: (favorites, { eq }) => eq(favorites.userId, user.id),
 	});
+	const favorites = dbFavorites.map(
+		({ referenceUrl, referenceTitle, ...favorite }) => {
+			const reference =
+				referenceUrl != null && referenceTitle != null
+					? { url: referenceUrl, title: referenceTitle }
+					: null;
+			return {
+				...favorite,
+				reference,
+			};
+		},
+	);
 	return json({ favorites });
 };
 
@@ -29,22 +41,15 @@ export default function Index() {
 		<MainLayout>
 			<div className="divide-y divide-slate-400">
 				<div className="flex flex-wrap ">
-					{data.favorites.map(
-						({ title, id, objectId, referenceUrl, referenceTitle }) => (
-							<Favorite
-								key={id}
-								type="image"
-								title={title}
-								imageUrl={`/favorites/${objectId}/image`}
-								references={[
-									{
-										title: referenceTitle,
-										url: referenceUrl,
-									},
-								]}
-							/>
-						),
-					)}
+					{data.favorites.map(({ title, id, objectId, reference }) => (
+						<Favorite
+							key={id}
+							type="image"
+							title={title}
+							imageUrl={`/favorites/${objectId}/image`}
+							reference={reference}
+						/>
+					))}
 					{/* <Favorite
             type="image"
             title="Relevence Onboarding UI"

@@ -47,6 +47,7 @@ export async function action(args: ActionFunctionArgs) {
 		if (e instanceof ValiError) {
 			return json({ error: flatten(e) }, { status: 400 });
 		}
+		console.error(e);
 		throw new Error("unexpected error");
 	}
 }

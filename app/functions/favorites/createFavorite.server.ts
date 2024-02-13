@@ -6,7 +6,7 @@ import { favorites, insertFavoriteSchema } from "~/db/favorites";
 import { findUserByActionFunctionArgs } from "../helpers/findUserByActionFunctionArgs";
 
 const parsePageTitle = async (url?: string | null | undefined) => {
-	if (url == null) {
+	if (url == null || url === "") {
 		return null;
 	}
 	const res = await fetch(url);

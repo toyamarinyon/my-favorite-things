@@ -23,12 +23,15 @@ export const Favorite: React.FC<FavoriteProps> = ({ ...props }) => (
 					))}
 			</div>
 			<div>
-				{props.references?.map(({ title, url }) => (
-					<a className="text-xs flex hover:underline items-center" href={url}>
+				{props.reference && (
+					<a
+						className="text-xs flex hover:underline items-center"
+						href={props.reference.title}
+					>
 						<ArrowDownRightIcon className="h-5 w-5 mr-1" />
-						<p>{title}</p>
+						<p>{props.reference.title}</p>
 					</a>
-				))}
+				)}
 			</div>
 		</div>
 	</div>
