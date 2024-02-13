@@ -2,11 +2,17 @@ import { Favorite } from "~/components/Favorite";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { LoaderFunction, redirect } from "@remix-run/cloudflare";
 import { MainLayout } from "~/components/layout/main";
+import { findUserByClerkUserId } from "~/functions/users/findUser.server";
 
 export const loader: LoaderFunction = async (args) => {
   const { userId } = await getAuth(args);
   if (!userId) {
-    // return redirect("/sign-in");
+    return redirect("/sign-in");
+  }
+  const user = await findUserByClerkUserId(userId, args.context);
+  console.log(user);
+  if (user == null) {
+    return redirect("/onboarding");
   }
   return {};
 };

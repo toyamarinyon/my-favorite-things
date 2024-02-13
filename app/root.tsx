@@ -1,11 +1,4 @@
-import {
-  ClerkApp,
-  ClerkErrorBoundary,
-  RedirectToSignIn,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/remix";
+import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
 import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import type { LinksFunction, LoaderFunction } from "@remix-run/cloudflare";
 import {
@@ -17,8 +10,6 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import stylesheet from "~/globals.css";
-import { Button } from "./components/ui/button";
-import { HeartIcon } from "lucide-react";
 import { cssBundleHref } from "@remix-run/css-bundle";
 
 export const links: LinksFunction = () => [

@@ -24,6 +24,8 @@ import { Form, useFetcher } from "@remix-run/react";
 import { parse, picklist } from "valibot";
 import { match } from "ts-pattern";
 import { analyzeImage } from "~/functions/analyzeImage.server";
+import { MainLayout } from "~/components/layout/main";
+import { createFavorite } from "~/functions/favorites/createFavorite.server";
 
 const ActionType = ["analyze-image", "create-favorite"] as const;
 const actionTypeSchema = picklist(ActionType);
@@ -47,14 +49,14 @@ export async function action(args: ActionFunctionArgs) {
   const actionType = parse(actionTypeSchema, unsafeActionType);
   return match(actionType)
     .with("analyze-image", async () => await analyzeImage(args))
-    .with("create-favorite", () => analyzeImage(args))
+    .with("create-favorite", () => createFavorite(args))
     .exhaustive();
 }
 
 export default function FavoriteNewPage() {
   const cropperRef = useRef<ReactCropperElement>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  const onCrop = () => {
+  const handleCropEnd = () => {
     const cropper = cropperRef.current?.cropper;
     if (cropper == null) {
       return;
@@ -68,9 +70,9 @@ export default function FavoriteNewPage() {
     fileInputRef.current?.click();
   }, []);
   const [flow, setFlow] = useState<AddNewFavoriteFlow>({
-    // step: "select-image",
-    step: "enter-details",
-    imageUrl: "https://100r.co/media/content/projects/dotgrid_02.jpg",
+    step: "select-image",
+    // step: "enter-details",
+    // imageUrl: "https://100r.co/media/content/projects/dotgrid_02.jpg",
   });
   const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (e) => {
@@ -82,7 +84,7 @@ export default function FavoriteNewPage() {
         imageUrl: URL.createObjectURL(e.target.files[0]),
       });
     },
-    [],
+    []
   );
   const analyzeImage = useFetcher<typeof action>();
   const handleClickAnalyzeButton = useCallback(() => {
@@ -99,116 +101,126 @@ export default function FavoriteNewPage() {
     }
     inputRef.current.value = analyzeImage.data.analyzeResult;
   }, [analyzeImage.data]);
+  useFetcher();
   return (
-    <div className="p-4 font-thin">
-      <h1 className="text-lg">Add a new favorite</h1>
-      <div className="flex divide-x divide-slate-900">
-        <div className="pr-4">
-          <ol className="ml-6 list-decimal pt-2">
-            <li
-              className={clsx({
-                "line-through": flow.step === "enter-details",
-              })}
-            >
-              <div className="h-16 space-y-0.5">
-                <p>Click the "Select a file" button to select a file</p>
-                {flow.step === "select-image" && (
-                  <>
-                    <Button type="button" onClick={handleClickSelectFileButton}>
-                      Select a file
-                    </Button>
-                    <Input
-                      name="file"
-                      id="file"
-                      type="file"
-                      onChange={handleChange}
-                      ref={fileInputRef}
-                      className="hidden"
-                    />
-                  </>
-                )}
-              </div>
-            </li>
-            <li>
-              <p>Crop the uploaded image and enter the details</p>
-              {flow.step === "enter-details" && (
-                <Form method="post">
-                  <div className="mb-8 space-y-1">
-                    <div className="w-[500px]">
-                      <Cropper
-                        src={flow.imageUrl}
-                        style={{ width: "100%" }}
-                        viewMode={1}
-                        // Cropper.js options
-                        initialAspectRatio={1 / 1}
-                        aspectRatio={1 / 1}
-                        guides={false}
-                        background={false}
-                        crop={onCrop}
-                        ref={cropperRef}
-                        zoomable={false}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="title">Title</Label>
-                    <div className="flex items-center space-x-1">
+    <MainLayout>
+      <div className="p-4 font-thin">
+        <h1 className="text-lg">Add a new favorite</h1>
+        <div className="flex divide-x divide-slate-900">
+          <div className="pr-4">
+            <ol className="ml-6 list-decimal pt-2">
+              <li
+                className={clsx({
+                  "line-through": flow.step === "enter-details",
+                })}
+              >
+                <div className="h-16 space-y-0.5">
+                  <p>Click the "Select a file" button to select a file</p>
+                  {flow.step === "select-image" && (
+                    <>
+                      <Button
+                        type="button"
+                        onClick={handleClickSelectFileButton}
+                      >
+                        Select a file
+                      </Button>
                       <Input
-                        type="text"
-                        id="title"
-                        name="title"
-                        ref={inputRef}
+                        name="file"
+                        id="file"
+                        type="file"
+                        onChange={handleChange}
+                        ref={fileInputRef}
+                        className="hidden"
                       />
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              type="button"
-                              size="form"
-                              onClick={handleClickAnalyzeButton}
-                            >
-                              {analyzeImage.state === "submitting" && (
-                                <p className="sono text-xs">Analyzing...</p>
-                              )}
-                              <SparkleIcon
-                                className={clsx("h-4 w-4", {
-                                  "animate-spin":
-                                    analyzeImage.state === "submitting",
-                                })}
-                              />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Analyze images with AI</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
-                  {canvas != null && (
-                    <input value={canvas.toDataURL()} type="hidden" />
+                    </>
                   )}
-                  <div>
-                    <Label htmlFor="reference">URL</Label>
-                    <Input type="text" id="reference" name="reference" />
-                    <p className="text-xs">
-                      URL of the image reference (web page, book introduction
-                      page, etc.)
-                    </p>
-                  </div>
-                  <Button type="submit">Finish</Button>
-                  <input
-                    type="hidden"
-                    name="actionType"
-                    value="create-favorite"
-                  />
-                </Form>
-              )}
-            </li>
-          </ol>
+                </div>
+              </li>
+              <li>
+                <p>Crop the uploaded image and enter the details</p>
+                {flow.step === "enter-details" && (
+                  <Form method="post">
+                    <div className="mb-8 space-y-1">
+                      <div className="w-[500px]">
+                        <Cropper
+                          src={flow.imageUrl}
+                          style={{ width: "100%" }}
+                          viewMode={1}
+                          // Cropper.js options
+                          initialAspectRatio={1 / 1}
+                          aspectRatio={1 / 1}
+                          guides={false}
+                          background={false}
+                          crop={handleCropEnd}
+                          ref={cropperRef}
+                          zoomable={false}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="title">Title</Label>
+                      <div className="flex items-center space-x-1">
+                        <Input
+                          type="text"
+                          id="title"
+                          name="title"
+                          ref={inputRef}
+                        />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                size="form"
+                                onClick={handleClickAnalyzeButton}
+                              >
+                                {analyzeImage.state === "submitting" && (
+                                  <p className="sono text-xs">Analyzing...</p>
+                                )}
+                                <SparkleIcon
+                                  className={clsx("h-4 w-4", {
+                                    "animate-spin":
+                                      analyzeImage.state === "submitting",
+                                  })}
+                                />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Analyze images with AI</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </div>
+                    {canvas != null && (
+                      <input
+                        name="objectUrl"
+                        value={canvas.toDataURL()}
+                        type="hidden"
+                      />
+                    )}
+                    <div className="mb-2">
+                      <Label htmlFor="reference">URL</Label>
+                      <Input type="text" id="reference" name="reference" />
+                      <p className="text-xs">
+                        URL of the image reference (web page, book introduction
+                        page, etc.)
+                      </p>
+                    </div>
+                    <Button type="submit">Add fav</Button>
+                    <input
+                      type="hidden"
+                      name="actionType"
+                      value="create-favorite"
+                    />
+                  </Form>
+                )}
+              </li>
+            </ol>
+          </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }

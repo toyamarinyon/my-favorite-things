@@ -9,10 +9,14 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "wrangler pages dev --compatibility-date=2023-06-21 ./public",
     "typecheck": "tsc",
-    "pages:deploy": "bun run build && wrangler pages deploy ./public"
+    "pages:deploy": "bun run build && wrangler pages deploy ./public",
+    "generate:migration": "drizzle-kit generate:sqlite",
+    "db:migration": "drizzle-kit up:sqlite"
   },
   "dependencies": {
     "@clerk/remix": "3.1.18",
+    "@libsql/client": "0.4.3",
+    "@paralleldrive/cuid2": "2.2.2",
     "@radix-ui/react-label": "2.0.2",
     "@radix-ui/react-slot": "1.0.2",
     "@radix-ui/react-tooltip": "1.0.7",
@@ -22,6 +26,8 @@
     "@remix-run/react": "2.6.0",
     "class-variance-authority": "0.7.0",
     "clsx": "2.1.0",
+    "drizzle-orm": "0.29.3",
+    "drizzle-valibot": "0.1.1",
     "framer-motion": "11.0.3",
     "install": "0.13.0",
     "isbot": "4.4.0",
@@ -41,6 +47,7 @@
     "@remix-run/dev": "2.6.0",
     "@types/react": "18.2.55",
     "@types/react-dom": "18.2.19",
+    "drizzle-kit": "0.20.14",
     "tailwindcss": "latest",
     "typescript": "5.3.3",
     "wrangler": "3.28.1"

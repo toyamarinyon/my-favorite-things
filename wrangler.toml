@@ -1,0 +1,9 @@
+[[d1_databases]]
+binding = "DB"
+database_name = "test-db"
+database_id = "test-db-1234"
+preview_database_id = "DB"
+
+[[r2_buckets]]
+binding = 'BUCKET'
+bucket_name = 'favorite_space_devel'
