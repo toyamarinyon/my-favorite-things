@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "28c6b374-7342-4f7f-8f65-143e7843f45d",
+  "id": "fd842b00-c43d-4602-b994-dfca4280ce65",
   "prevId": "925eb8e5-9444-4e6c-bad1-4eae5fcf2d70",
   "tables": {
     "favorites": {
@@ -35,9 +35,16 @@
           "notNull": true,
           "autoincrement": false
         },
-        "reference": {
-          "name": "reference",
-          "type": "blob",
+        "reference_url": {
+          "name": "reference_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reference_title": {
+          "name": "reference_title",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

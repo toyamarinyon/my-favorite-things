@@ -3,7 +3,8 @@ CREATE TABLE `favorites` (
 	`user_id` text NOT NULL,
 	`title` text NOT NULL,
 	`object_id` text NOT NULL,
-	`reference` blob,
+	`reference_url` text,
+	`reference_title` text,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

@@ -1,28 +1,51 @@
-import { Favorite } from "~/components/Favorite";
 import { getAuth } from "@clerk/remix/ssr.server";
-import { LoaderFunction, redirect } from "@remix-run/cloudflare";
+import { LoaderFunctionArgs, json, redirect } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import { Favorite } from "~/components/Favorite";
 import { MainLayout } from "~/components/layout/main";
+import { drizzle } from "~/db/drizzle";
 import { findUserByClerkUserId } from "~/functions/users/findUser.server";
 
-export const loader: LoaderFunction = async (args) => {
-  const { userId } = await getAuth(args);
-  if (!userId) {
-    return redirect("/sign-in");
-  }
-  const user = await findUserByClerkUserId(userId, args.context);
-  console.log(user);
-  if (user == null) {
-    return redirect("/onboarding");
-  }
-  return {};
+export const loader = async (args: LoaderFunctionArgs) => {
+	const { userId } = await getAuth(args);
+	if (!userId) {
+		return redirect("/sign-in");
+	}
+	const user = await findUserByClerkUserId(userId, args.context);
+	if (user == null) {
+		return redirect("/onboarding");
+	}
+
+	const db = drizzle(args.context.env as Env);
+	const favorites = await db.query.favorites.findMany({
+		where: (favorites, { eq }) => eq(favorites.userId, user.id),
+	});
+	return json({ favorites });
 };
 
 export default function Index() {
-  return (
-    <MainLayout>
-      <div className="divide-y divide-slate-400">
-        <div className="flex flex-wrap ">
-          <Favorite
+	const data = useLoaderData<typeof loader>();
+	return (
+		<MainLayout>
+			<div className="divide-y divide-slate-400">
+				<div className="flex flex-wrap ">
+					{data.favorites.map(
+						({ title, id, objectId, referenceUrl, referenceTitle }) => (
+							<Favorite
+								key={id}
+								type="image"
+								title={title}
+								imageUrl={`/favorites/${objectId}/image`}
+								references={[
+									{
+										title: referenceTitle,
+										url: referenceUrl,
+									},
+								]}
+							/>
+						),
+					)}
+					{/* <Favorite
             type="image"
             title="Relevence Onboarding UI"
             imageUrl="/images/1.jpeg"
@@ -85,9 +108,9 @@ export default function Index() {
                 url: "https://twitter.com/DanHollick/status/1614970789199220738",
               },
             ]}
-          />
-        </div>
-      </div>
-    </MainLayout>
-  );
+          /> */}
+				</div>
+			</div>
+		</MainLayout>
+	);
 }

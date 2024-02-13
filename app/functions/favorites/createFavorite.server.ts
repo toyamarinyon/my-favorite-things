@@ -1,59 +1,60 @@
-import { ActionFunctionArgs } from "@remix-run/cloudflare";
-import { findUserByActionFunctionArgs } from "../helpers/findUserByActionFunctionArgs";
-import { favorites, insertFavoriteSchema } from "~/db/favorites";
-import { merge, object, parse, string } from "valibot";
 import { createId } from "@paralleldrive/cuid2";
+import { ActionFunctionArgs } from "@remix-run/cloudflare";
+import { merge, object, omit, parse, string } from "valibot";
 import { drizzle } from "~/db/drizzle";
+import { favorites, insertFavoriteSchema } from "~/db/favorites";
+import { findUserByActionFunctionArgs } from "../helpers/findUserByActionFunctionArgs";
 
 const parsePageTitle = async (url?: string | null | undefined) => {
-  if (url == null) {
-    return null;
-  }
-  const res = await fetch(url);
-  if (res.status !== 200) {
-    return null;
-  }
-  const text = await res.text();
-  const title = text.match(/<title>(.*?)<\/title>/);
-  if (title == null) {
-    return null;
-  }
-  return title[1] as string;
+	if (url == null) {
+		return null;
+	}
+	const res = await fetch(url);
+	if (res.status !== 200) {
+		return null;
+	}
+	const text = await res.text();
+	const title = text.match(/<title>(.*?)<\/title>/);
+	if (title == null) {
+		return null;
+	}
+	return title[1] as string;
 };
 
-const createFavoriteInputSchema = merge([
-  insertFavoriteSchema,
-  object({ objectBase64: string() }),
-]);
+const createFavoriteInputSchema = omit(
+	merge([insertFavoriteSchema, object({ dataUrl: string() })]),
+	["objectId"],
+);
 export const createFavorite = async (args: ActionFunctionArgs) => {
-  const user = await findUserByActionFunctionArgs(args);
-  const formData = await args.request.clone().formData();
-  const title = formData.get("title");
-  const objectBase64 = formData.get("objectBase64");
-  const referenceUrl = formData.get("referenceUrl");
+	const user = await findUserByActionFunctionArgs(args);
+	const formData = await args.request.formData();
+	const title = formData.get("title");
+	const dataUrl = formData.get("dataUrl");
+	const referenceUrl = formData.get("referenceUrl");
 
-  const input = parse(createFavoriteInputSchema, {
-    title,
-    userId: user?.id,
-    referenceUrl,
-    objectBase64,
-  });
+	const input = parse(createFavoriteInputSchema, {
+		title,
+		userId: user?.id,
+		referenceUrl,
+		dataUrl,
+	});
 
-  const file = Uint8Array.from(atob(input.objectBase64), (c) =>
-    c.charCodeAt(0)
-  );
+	const [prefix, data] = input.dataUrl.split(",");
+	const mimeType = prefix.match(/:(.*?);/)?.[1];
 
-  const env = args.context.env as Env;
-  const bucket = env.BUCKET;
-  const objectId = createId();
-  bucket.put(objectId, file, { httpMetadata: { contentType: "image/png" } });
+	const file = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
 
-  const referenceTitle = await parsePageTitle(input.referenceUrl);
+	const env = args.context.env as Env;
+	const bucket = env.BUCKET;
+	const objectId = createId();
+	await bucket.put(objectId, file, { httpMetadata: { contentType: mimeType } });
 
-  const db = drizzle(env);
-  await db.insert(favorites).values({
-    ...input,
-    objectId,
-    referenceTitle,
-  });
+	const referenceTitle = await parsePageTitle(input.referenceUrl);
+
+	const db = drizzle(env);
+	await db.insert(favorites).values({
+		...input,
+		objectId,
+		referenceTitle,
+	});
 };
