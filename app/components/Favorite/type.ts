@@ -6,4 +6,5 @@ export type FavoriteBaseProps = {
 	type: string;
 	title: string;
 	reference?: Reference | null;
+	createdAt: string;
 };

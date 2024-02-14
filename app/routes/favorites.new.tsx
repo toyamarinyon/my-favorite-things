@@ -50,27 +50,44 @@ export async function action(args: ActionFunctionArgs) {
 
 const useCropper = () => {
 	const cropperRef = useRef<ReactCropperElement>(null);
-	const [croppedCanvas, setCroppedCanvas] = useState<HTMLCanvasElement | null>(
-		null,
-	);
+	const [cropped400WidthBase64Url, setCropped400WidthBase64Url] = useState<
+		string | null
+	>(null);
+	const [cropped800WidthBase64Url, setCropped800WidthBase64Url] = useState<
+		string | null
+	>(null);
 	const handleCrop = () => {
 		const cropper = cropperRef.current?.cropper;
 		if (cropper == null) {
 			return;
 		}
-		startTransition(() => {
-			setCroppedCanvas(cropper.getCroppedCanvas());
-		});
+		setCropped400WidthBase64Url(
+			cropper
+				.getCroppedCanvas({ width: 400, height: 300 })
+				.toDataURL("image/jpeg", 0.8),
+		);
+		setCropped800WidthBase64Url(
+			cropper
+				.getCroppedCanvas({ maxWidth: 800, maxHeight: 600 })
+				.toDataURL("image/jpeg", 0.8),
+		);
+		// setCroppedCanvas(cropper.getCroppedCanvas({ width: 400, height: 300 }));
 	};
 	return {
 		cropperRef,
-		croppedCanvas,
+		cropped400WidthBase64Url,
+		cropped800WidthBase64Url,
 		handleCrop,
 	};
 };
 
 export default function FavoriteNewPage() {
-	const { cropperRef, handleCrop, croppedCanvas } = useCropper();
+	const {
+		cropperRef,
+		handleCrop,
+		cropped400WidthBase64Url,
+		cropped800WidthBase64Url,
+	} = useCropper();
 	const [flow, setFlow] = useState<AddNewFavoriteFlow>({
 		step: "select-image",
 		// step: "enter-details",
@@ -84,28 +101,14 @@ export default function FavoriteNewPage() {
 	}, []);
 	const analyzeImage = useFetcher<typeof analyzeImageAction>();
 	const handleClickAnalyzeButton = useCallback(() => {
-		if (croppedCanvas == null) {
+		if (cropped400WidthBase64Url == null) {
 			/** @todo show error toast */
 			return;
 		}
-		const duplicateCanvas = document.createElement("canvas");
-		duplicateCanvas.width = croppedCanvas.width;
-		duplicateCanvas.height = croppedCanvas.height;
-		const ctx = duplicateCanvas.getContext("2d");
-		ctx?.drawImage(croppedCanvas, 0, 0);
-		document.body.appendChild(duplicateCanvas);
-		if (duplicateCanvas.width > 400) {
-			const originalAspectRatio = croppedCanvas.height / croppedCanvas.width;
-			duplicateCanvas.width = 400;
-			duplicateCanvas.height = croppedCanvas.height * originalAspectRatio;
-		}
-		console.log(croppedCanvas.width);
-
 		const formData = new FormData();
-		formData.append("imageUrl", croppedCanvas.toDataURL());
-		// analyzeImage.submit(formData, { method: "POST", action: "/analyzeImage" });
-		// duplicateCanvas?.parentNode?.removeChild(duplicateCanvas);
-	}, [analyzeImage, croppedCanvas]);
+		formData.append("imageUrl", cropped400WidthBase64Url);
+		analyzeImage.submit(formData, { method: "POST", action: "/analyzeImage" });
+	}, [analyzeImage, cropped400WidthBase64Url]);
 	const inputRef = useRef<HTMLInputElement>(null);
 	useEffect(() => {
 		if (analyzeImage.data?.analyze == null || inputRef.current == null) {
@@ -148,7 +151,8 @@ export default function FavoriteNewPage() {
 													aspectRatio={4 / 3}
 													guides={false}
 													background={false}
-													crop={handleCrop}
+													ready={handleCrop}
+													cropend={handleCrop}
 													ref={cropperRef}
 													zoomable={false}
 												/>
@@ -190,10 +194,10 @@ export default function FavoriteNewPage() {
 												</TooltipProvider>
 											</div>
 										</div>
-										{croppedCanvas != null && (
+										{cropped800WidthBase64Url != null && (
 											<input
 												name="dataUrl"
-												value={croppedCanvas.toDataURL()}
+												value={cropped800WidthBase64Url}
 												type="hidden"
 											/>
 										)}

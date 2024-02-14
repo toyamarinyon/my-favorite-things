@@ -1,9 +1,11 @@
 import { getAuth } from "@clerk/remix/ssr.server";
 import { LoaderFunctionArgs, json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
+import { desc } from "drizzle-orm";
 import { Favorite } from "~/components/Favorite";
 import { MainLayout } from "~/components/layout/main";
 import { drizzle } from "~/db/drizzle";
+import { favorites as favoritesSchema } from "~/db/schema";
 import { findUserByClerkUserId } from "~/functions/users/findUser.server";
 
 export const loader = async (args: LoaderFunctionArgs) => {
@@ -19,12 +21,13 @@ export const loader = async (args: LoaderFunctionArgs) => {
 	const db = drizzle(args.context.env as Env);
 	const dbFavorites = await db.query.favorites.findMany({
 		where: (favorites, { eq }) => eq(favorites.userId, user.id),
+		orderBy: [desc(favoritesSchema.createdAt)],
 	});
 	const favorites = dbFavorites.map(
 		({ referenceUrl, referenceTitle, ...favorite }) => {
 			const reference =
-				referenceUrl != null && referenceTitle != null
-					? { url: referenceUrl, title: referenceTitle }
+				referenceUrl != null
+					? { url: referenceUrl, title: referenceTitle ?? referenceUrl }
 					: null;
 			return {
 				...favorite,
@@ -40,16 +43,19 @@ export default function Index() {
 	return (
 		<MainLayout>
 			<div className="divide-y divide-slate-400">
-				<div className="flex flex-wrap ">
-					{data.favorites.map(({ title, id, objectId, reference }) => (
-						<Favorite
-							key={id}
-							type="image"
-							title={title}
-							imageUrl={`/favorites/${objectId}/image`}
-							reference={reference}
-						/>
-					))}
+				<div className="flex flex-wrap -mr-1">
+					{data.favorites.map(
+						({ title, id, objectId, reference, createdAt }) => (
+							<Favorite
+								key={id}
+								type="image"
+								title={title}
+								imageUrl={`/favorites/${objectId}/image`}
+								reference={reference}
+								createdAt={createdAt}
+							/>
+						),
+					)}
 					{/* <Favorite
             type="image"
             title="Relevence Onboarding UI"
