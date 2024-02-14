@@ -1,8 +1,8 @@
 import { ArrowDownRightIcon } from "lucide-react";
 import { match } from "ts-pattern";
 import { formatDateTime } from "~/lib/formatter";
-import { FavoriteImage, FavoriteImageProps } from "./FavoriteImage";
-import { FavoriteText, FavoriteTextProps } from "./FavoriteText";
+import { FavoriteImage, FavoriteImageProps } from "./favorite-image";
+import { FavoriteText, FavoriteTextProps } from "./favorite-text";
 
 type FavoriteProps = FavoriteImageProps | FavoriteTextProps;
 export const Favorite: React.FC<FavoriteProps> = ({ ...props }) => (

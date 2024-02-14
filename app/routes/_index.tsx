@@ -2,7 +2,7 @@ import { getAuth } from "@clerk/remix/ssr.server";
 import { LoaderFunctionArgs, json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { desc } from "drizzle-orm";
-import { Favorite } from "~/components/Favorite";
+import { Favorite } from "~/components/favorite";
 import { MainLayout } from "~/components/layout/main";
 import { drizzle } from "~/db/drizzle";
 import { favorites as favoritesSchema } from "~/db/schema";
