@@ -88,10 +88,23 @@ export default function FavoriteNewPage() {
 			/** @todo show error toast */
 			return;
 		}
+		const duplicateCanvas = document.createElement("canvas");
+		duplicateCanvas.width = croppedCanvas.width;
+		duplicateCanvas.height = croppedCanvas.height;
+		const ctx = duplicateCanvas.getContext("2d");
+		ctx?.drawImage(croppedCanvas, 0, 0);
+		document.body.appendChild(duplicateCanvas);
+		if (duplicateCanvas.width > 400) {
+			const originalAspectRatio = croppedCanvas.height / croppedCanvas.width;
+			duplicateCanvas.width = 400;
+			duplicateCanvas.height = croppedCanvas.height * originalAspectRatio;
+		}
+		console.log(croppedCanvas.width);
 
 		const formData = new FormData();
 		formData.append("imageUrl", croppedCanvas.toDataURL());
-		analyzeImage.submit(formData, { method: "POST", action: "/analyzeImage" });
+		// analyzeImage.submit(formData, { method: "POST", action: "/analyzeImage" });
+		// duplicateCanvas?.parentNode?.removeChild(duplicateCanvas);
 	}, [analyzeImage, croppedCanvas]);
 	const inputRef = useRef<HTMLInputElement>(null);
 	useEffect(() => {
