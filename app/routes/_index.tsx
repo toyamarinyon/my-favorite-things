@@ -1,11 +1,9 @@
 import { getAuth } from "@clerk/remix/ssr.server";
 import { LoaderFunctionArgs, json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
-import { desc } from "drizzle-orm";
-import { Favorite } from "~/components/favorite";
+import { Favorite, transform } from "~/components/favorite";
 import { MainLayout } from "~/components/layout/main";
-import { drizzle } from "~/db/drizzle";
-import { favorites as favoritesSchema } from "~/db/schema";
+import { findFavoritesByUserId } from "~/functions/favorites/findFavoritesByUserId";
 import { findUserByClerkUserId } from "~/functions/users/findUser.server";
 
 export const loader = async (args: LoaderFunctionArgs) => {
@@ -18,23 +16,8 @@ export const loader = async (args: LoaderFunctionArgs) => {
 		return redirect("/onboarding");
 	}
 
-	const db = drizzle(args.context.env as Env);
-	const dbFavorites = await db.query.favorites.findMany({
-		where: (favorites, { eq }) => eq(favorites.userId, user.id),
-		orderBy: [desc(favoritesSchema.createdAt)],
-	});
-	const favorites = dbFavorites.map(
-		({ referenceUrl, referenceTitle, ...favorite }) => {
-			const reference =
-				referenceUrl != null
-					? { url: referenceUrl, title: referenceTitle ?? referenceUrl }
-					: null;
-			return {
-				...favorite,
-				reference,
-			};
-		},
-	);
+	const dbFavorites = await findFavoritesByUserId(user.id, { env });
+	const favorites = transform(dbFavorites);
 	return json({ favorites });
 };
 
