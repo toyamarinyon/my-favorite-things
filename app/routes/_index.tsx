@@ -16,7 +16,9 @@ export const loader = async (args: LoaderFunctionArgs) => {
 		return redirect("/onboarding");
 	}
 
-	const dbFavorites = await findFavoritesByUserId(user.id, { env });
+	const dbFavorites = await findFavoritesByUserId(user.id, {
+		env: args.context.env as Env,
+	});
 	const favorites = transform(dbFavorites);
 	return json({ favorites });
 };

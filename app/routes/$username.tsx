@@ -1,5 +1,6 @@
 import { LoaderFunctionArgs, json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
+import invariant from "tiny-invariant";
 import { Favorite, transform } from "~/components/favorite";
 import { MainLayout } from "~/components/layout/main";
 import { drizzle } from "~/db/drizzle";
@@ -7,17 +8,13 @@ import { findFavoritesByUserId } from "~/functions/favorites/findFavoritesByUser
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 	const username = params.username;
-	if (username == null) {
-		return new Response("Not Found", { status: 404 });
-	}
+	invariant(username, "username is required");
 	const env = context.env as Env;
 	const db = drizzle(env);
 	const user = await db.query.users.findFirst({
 		where: (users, { eq }) => eq(users.username, username),
 	});
-	if (user == null) {
-		return new Response("Not Found", { status: 404 });
-	}
+	invariant(user, "user not found");
 	const dbFavorites = await findFavoritesByUserId(user.id, { env });
 	const favorites = transform(dbFavorites);
 	return json({ favorites });
