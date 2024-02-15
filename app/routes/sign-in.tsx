@@ -8,7 +8,7 @@ export default function AuthLayout() {
 			<div className="flex-1 relative">
 				<div className="absolute flex h-14 items-center px-4">
 					<div className="flex items-center">
-						<p className="sono mr-1 text-lg">My Favorite Things</p>
+						<p className="sono mr-1 text-lg">My Favorites</p>
 						<HeartIcon className="h-4 w-4 fill-slate-800 text-slate-800" />
 					</div>
 				</div>

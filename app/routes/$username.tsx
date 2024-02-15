@@ -17,27 +17,25 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 	invariant(user, "user not found");
 	const dbFavorites = await findFavoritesByUserId(user.id, { env });
 	const favorites = transform(dbFavorites);
-	return json({ favorites });
+	return json({ favorites, username });
 };
 
 export default function Index() {
-	const data = useLoaderData<typeof loader>();
+	const { username, favorites } = useLoaderData<typeof loader>();
 	return (
-		<MainLayout>
+		<MainLayout username={username}>
 			<div className="divide-y divide-slate-400">
 				<div className="flex flex-wrap -mr-1">
-					{data.favorites.map(
-						({ title, id, objectId, reference, createdAt }) => (
-							<Favorite
-								key={id}
-								type="image"
-								title={title}
-								imageUrl={`/favorites/${objectId}/image`}
-								reference={reference}
-								createdAt={createdAt}
-							/>
-						),
-					)}
+					{favorites.map(({ title, id, objectId, reference, createdAt }) => (
+						<Favorite
+							key={id}
+							type="image"
+							title={title}
+							imageUrl={`/favorites/${objectId}/image`}
+							reference={reference}
+							createdAt={createdAt}
+						/>
+					))}
 				</div>
 			</div>
 		</MainLayout>

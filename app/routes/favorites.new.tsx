@@ -12,7 +12,7 @@ import {
 } from "react";
 import Cropper, { ReactCropperElement } from "react-cropper";
 import { ValiError, flatten } from "valibot";
-import { FileInput } from "~/components/Favorite/file-input";
+import { FileInput } from "~/components/favorite/file-input";
 import { MainLayout } from "~/components/layout/main";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
