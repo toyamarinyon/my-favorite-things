@@ -3,13 +3,7 @@ import { Form, useFetcher, useNavigation } from "@remix-run/react";
 import clsx from "clsx";
 import "cropperjs/dist/cropper.css";
 import { SparkleIcon } from "lucide-react";
-import {
-	startTransition,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Cropper, { ReactCropperElement } from "react-cropper";
 import { ValiError, flatten } from "valibot";
 import { FileInput } from "~/components/favorite/file-input";
@@ -68,10 +62,14 @@ const useCropper = () => {
 		);
 		setCropped800WidthBase64Url(
 			cropper
-				.getCroppedCanvas({ maxWidth: 800, maxHeight: 600 })
+				.getCroppedCanvas({
+					maxWidth: 800,
+					maxHeight: 600,
+					imageSmoothingEnabled: true,
+					imageSmoothingQuality: "high",
+				})
 				.toDataURL("image/jpeg", 0.8),
 		);
-		// setCroppedCanvas(cropper.getCroppedCanvas({ width: 400, height: 300 }));
 	};
 	return {
 		cropperRef,
@@ -124,16 +122,10 @@ export default function FavoriteNewPage() {
 				<div className="flex divide-x divide-slate-900">
 					<div className="pr-4">
 						<ol className="ml-6 list-decimal pt-2">
-							<li
-								className={clsx({
-									"line-through": flow.step === "enter-details",
-								})}
-							>
+							<li>
 								<div className="h-16 space-y-0.5">
 									<p>Click the "Select a file" button to select a file</p>
-									{flow.step === "select-image" && (
-										<FileInput onFileChange={handleFileChange} />
-									)}
+									<FileInput onFileChange={handleFileChange} />
 								</div>
 							</li>
 							<li>
