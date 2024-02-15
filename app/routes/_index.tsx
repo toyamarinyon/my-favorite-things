@@ -29,18 +29,16 @@ export default function Index() {
 		<MainLayout>
 			<div className="divide-y divide-slate-400">
 				<div className="flex flex-wrap -mr-1">
-					{data.favorites.map(
-						({ title, id, objectId, reference, createdAt }) => (
-							<Favorite
-								key={id}
-								type="image"
-								title={title}
-								imageUrl={`/favorites/${objectId}/image`}
-								reference={reference}
-								createdAt={createdAt}
-							/>
-						),
-					)}
+					{data.favorites.map(({ title, id, body, reference, createdAt }) => (
+						<Favorite
+							key={id}
+							type="image"
+							title={title}
+							imageUrl={`/favorites/${body}/image`}
+							reference={reference}
+							createdAt={createdAt}
+						/>
+					))}
 					{/* <Favorite
             type="image"
             title="Relevence Onboarding UI"

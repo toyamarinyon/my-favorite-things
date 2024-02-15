@@ -4,6 +4,10 @@ import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-valibot";
 import { merge, minLength, object, string } from "valibot";
 import { users } from "./users";
+/**
+ * A favorite is a user's bookmark of a specific piece of content.
+ * content: The content of the favorite. If the favorite is a picture, this will be the object id. If the favorite is a note, this will be the note content.
+ */
 export const favorites = sqliteTable("favorites", {
 	id: text("id")
 		.primaryKey()
@@ -12,7 +16,7 @@ export const favorites = sqliteTable("favorites", {
 		.notNull()
 		.references(() => users.id),
 	title: text("title").notNull(),
-	objectId: text("object_id").notNull().unique(),
+	body: text("body").notNull(),
 	referenceUrl: text("reference_url"),
 	referenceTitle: text("reference_title"),
 	createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),

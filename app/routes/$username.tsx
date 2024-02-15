@@ -26,12 +26,12 @@ export default function Index() {
 		<MainLayout username={username}>
 			<div className="divide-y divide-slate-400">
 				<div className="flex flex-wrap -mr-1">
-					{favorites.map(({ title, id, objectId, reference, createdAt }) => (
+					{favorites.map(({ title, id, body, reference, createdAt }) => (
 						<Favorite
 							key={id}
 							type="image"
 							title={title}
-							imageUrl={`/favorites/${objectId}/image`}
+							imageUrl={`/favorites/${body}/image`}
 							reference={reference}
 							createdAt={createdAt}
 						/>

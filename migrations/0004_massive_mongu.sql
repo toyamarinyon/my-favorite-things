@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS `favorites_body_unique`;

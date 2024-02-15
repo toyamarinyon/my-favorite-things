@@ -22,6 +22,20 @@
       "when": 1707921071943,
       "tag": "0002_blushing_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1707980889056,
+      "tag": "0003_sour_darkhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1707980974975,
+      "tag": "0004_massive_mongu",
+      "breakpoints": true
     }
   ]
 }
