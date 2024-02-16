@@ -7,12 +7,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Cropper, { ReactCropperElement } from "react-cropper";
 import { match } from "ts-pattern";
 import { ValiError, flatten, parse } from "valibot";
+import { Favorite } from "~/components/favorite";
 import { FileInput } from "~/components/favorite/file-input";
 import { MainLayout } from "~/components/layout/main";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { Textarea } from "~/components/ui/textarea";
 import {
 	Tooltip,
 	TooltipContent,
@@ -129,37 +131,58 @@ export default function FavoriteNewPage() {
 				<h1 className="text-lg">Add a new favorite</h1>
 				<div className="flex divide-x divide-slate-900">
 					<div className="pr-4">
-						<ol className="ml-6 list-decimal pt-2 space-y-4">
-							<li>
+						<div className="ml-6 list-decimal pt-2 flex space-x-8">
+							<div className="flex-1">
 								<div>
-									<p className="mb-2">Chose the type you want to add</p>
-									<RadioGroup
-										value={favoriteType}
-										onValueChange={handleFavoriteTypeChange}
-									>
-										<div className="flex items-center space-x-2">
-											<RadioGroupItem value="image" id="image" />
-											<Label htmlFor="image">Image</Label>
+									<p className="mb-2">1. Chose the type you want to add</p>
+									<div className="flex">
+										<div>
+											<RadioGroup
+												value={favoriteType}
+												onValueChange={handleFavoriteTypeChange}
+											>
+												<div className="flex items-center space-x-2">
+													<RadioGroupItem value="image" id="image" />
+													<Label htmlFor="image">Image</Label>
+												</div>
+												<div className="flex items-center space-x-2">
+													<RadioGroupItem value="text" id="text" />
+													<Label htmlFor="text">Text</Label>
+												</div>
+											</RadioGroup>
 										</div>
-										<div className="flex items-center space-x-2">
-											<RadioGroupItem value="text" id="text" />
-											<Label htmlFor="text">Text</Label>
+										<div className="ml-10">
+											<Favorite
+												variant={"fixWidth"}
+												className="w-[300px]"
+												type="image"
+												title="title"
+												imageUrl="/images/3.jpeg"
+												reference={{
+													title: "Reference title",
+													url: "https://poolsuite.net/",
+												}}
+												createdAt="2021-08-01T00:00:00Z"
+												preview
+											/>
 										</div>
-									</RadioGroup>
+									</div>
 								</div>
-							</li>
+							</div>
 
 							{match(favoriteType)
 								.with("image", () => (
-									<>
-										<li>
+									<div className="flex-1 space-y-4">
+										<div>
 											<div className="space-y-0.5">
-												<p>Click the "Select a file" button to select a file</p>
+												<p>
+													2. Click the "Select a file" button to select a file
+												</p>
 												<FileInput onFileChange={handleFileChange} />
 											</div>
-										</li>
-										<li>
-											<p>Crop the uploaded image and enter the details</p>
+										</div>
+										<div>
+											<p>3. Crop the uploaded image and enter the details</p>
 											{flow.step === "enter-details" && (
 												<Form method="post">
 													<div className="mb-8 space-y-1">
@@ -245,18 +268,31 @@ export default function FavoriteNewPage() {
 													</Button>
 												</Form>
 											)}
-										</li>
-									</>
+										</div>
+									</div>
 								))
 								.with("text", () => (
 									<>
-										<li>
-											<p>Enter the details</p>
+										<div>
+											<p>2. Enter the details</p>
 											<Form method="post">
-												<div className="mb-4">
+												<div className="mb-4 space-y-3">
+													<div>
+														<Label htmlFor="body">Content</Label>
+														<Textarea
+															id="body"
+															name="body"
+															placeholder="If I had an hour to solve a problem I'd spend 55 minutes thinking about the problem and 5 minutes thinking about solutions."
+														/>
+													</div>
 													<div>
 														<Label htmlFor="title">Title</Label>
-														<Input type="text" id="title" name="title" />
+														<Input
+															type="text"
+															id="title"
+															name="title"
+															placeholder="Albert Einstein - Problem Solving"
+														/>
 													</div>
 													<div>
 														<Label htmlFor="referenceUrl">URL</Label>
@@ -264,6 +300,7 @@ export default function FavoriteNewPage() {
 															type="text"
 															id="referenceUrl"
 															name="referenceUrl"
+															placeholder="https://www.goodreads.com/quotes/60780-if-i-had-an-hour-to-solve-a-problem-i-d"
 														/>
 														<p className="text-xs">
 															URL of the image reference (web page, book
@@ -278,11 +315,11 @@ export default function FavoriteNewPage() {
 													Add fav
 												</Button>
 											</Form>
-										</li>
+										</div>
 									</>
 								))
 								.exhaustive()}
-						</ol>
+						</div>
 					</div>
 				</div>
 			</div>

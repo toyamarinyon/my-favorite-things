@@ -1,6 +1,4 @@
-import { FavoriteBaseProps } from "./type";
-
-export type FavoriteTextProps = FavoriteBaseProps & {
+export type FavoriteTextProps = {
 	type: "text";
 	text: string;
 };

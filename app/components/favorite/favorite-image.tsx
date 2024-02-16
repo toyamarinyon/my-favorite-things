@@ -1,6 +1,4 @@
-import { FavoriteBaseProps } from "./type";
-
-export type FavoriteImageProps = FavoriteBaseProps & {
+export type FavoriteImageProps = {
 	type: "image";
 	imageUrl: string;
 };
