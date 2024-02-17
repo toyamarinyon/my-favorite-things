@@ -1,0 +1,1 @@
+ALTER TABLE favorites ADD `body_type` text DEFAULT 'image' NOT NULL;

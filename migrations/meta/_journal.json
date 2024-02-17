@@ -36,6 +36,13 @@
       "when": 1707980974975,
       "tag": "0004_massive_mongu",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1708158509263,
+      "tag": "0005_exotic_stone_men",
+      "breakpoints": true
     }
   ]
 }

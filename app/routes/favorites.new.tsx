@@ -23,6 +23,7 @@ import {
 } from "~/components/ui/tooltip";
 import { BodyType, BodyTypeSchema } from "~/db/favorites";
 import { createFavorite } from "~/functions/favorites/createFavorite.server";
+import { useFormData } from "~/lib/useFormData";
 import type { action as analyzeImageAction } from "~/routes/analyzeImage";
 
 type SelectImage = {
@@ -93,13 +94,12 @@ export default function FavoriteNewPage() {
 	} = useCropper();
 	const [flow, setFlow] = useState<AddNewFavoriteFlow>({
 		step: "select-image",
-		// step: "enter-details",
-		// imageUrl: "https://100r.co/media/content/projects/dotgrid_02.jpg",
 	});
 	const handleFileChange = useCallback((file: File) => {
+		const objectUrl = URL.createObjectURL(file);
 		setFlow({
 			step: "enter-details",
-			imageUrl: URL.createObjectURL(file),
+			imageUrl: objectUrl,
 		});
 	}, []);
 	const analyzeImage = useFetcher<typeof analyzeImageAction>();
@@ -112,13 +112,15 @@ export default function FavoriteNewPage() {
 		formData.append("imageUrl", cropped400WidthBase64Url);
 		analyzeImage.submit(formData, { method: "POST", action: "/analyzeImage" });
 	}, [analyzeImage, cropped400WidthBase64Url]);
-	const inputRef = useRef<HTMLInputElement>(null);
+	const titleRef = useRef<HTMLInputElement>(null);
+	const { formRef, formData, updateFormData } = useFormData();
 	useEffect(() => {
-		if (analyzeImage.data?.analyze == null || inputRef.current == null) {
+		if (titleRef.current == null || analyzeImage.data?.analyze == null) {
 			return;
 		}
-		inputRef.current.value = analyzeImage.data.analyze;
-	}, [analyzeImage.data]);
+		titleRef.current.value = analyzeImage.data.analyze;
+		updateFormData();
+	}, [analyzeImage.data, titleRef]);
 	const navigation = useNavigation();
 	const [favoriteType, setFavoriteType] = useState<BodyType>("image");
 	const handleFavoriteTypeChange = useCallback((newFavoriteType: string) => {
@@ -128,67 +130,50 @@ export default function FavoriteNewPage() {
 	return (
 		<MainLayout>
 			<div className="p-4 font-thin">
-				<h1 className="text-lg">Add a new favorite</h1>
-				<div className="flex divide-x divide-slate-900">
-					<div className="pr-4">
-						<div className="ml-6 list-decimal pt-2 flex space-x-8">
-							<div className="flex-1">
-								<div>
-									<p className="mb-2">1. Chose the type you want to add</p>
-									<div className="flex">
-										<div>
-											<RadioGroup
-												value={favoriteType}
-												onValueChange={handleFavoriteTypeChange}
-											>
-												<div className="flex items-center space-x-2">
-													<RadioGroupItem value="image" id="image" />
-													<Label htmlFor="image">Image</Label>
-												</div>
-												<div className="flex items-center space-x-2">
-													<RadioGroupItem value="text" id="text" />
-													<Label htmlFor="text">Text</Label>
-												</div>
-											</RadioGroup>
-										</div>
-										<div className="ml-10">
-											<Favorite
-												variant={"fixWidth"}
-												className="w-[300px]"
-												type="image"
-												title="title"
-												imageUrl="/images/3.jpeg"
-												reference={{
-													title: "Reference title",
-													url: "https://poolsuite.net/",
-												}}
-												createdAt="2021-08-01T00:00:00Z"
-												preview
-											/>
-										</div>
+				<h1 className="text-lg mb-4">Add a new favorite</h1>
+				<Form method="post" ref={formRef}>
+					<div className="flex pl-8 space-x-8">
+						<ol className="list-decimal space-y-6">
+							<li>
+								<p className="mb-2">Chose the type you want to add</p>
+								<div className="flex">
+									<div>
+										<RadioGroup
+											value={favoriteType}
+											onValueChange={handleFavoriteTypeChange}
+										>
+											<div className="flex items-center space-x-2">
+												<RadioGroupItem value="image" id="image" />
+												<Label htmlFor="image">Image</Label>
+											</div>
+											<div className="flex items-center space-x-2">
+												<RadioGroupItem value="text" id="text" />
+												<Label htmlFor="text">Text</Label>
+											</div>
+										</RadioGroup>
 									</div>
 								</div>
-							</div>
+							</li>
 
 							{match(favoriteType)
 								.with("image", () => (
-									<div className="flex-1 space-y-4">
-										<div>
-											<div className="space-y-0.5">
-												<p>
-													2. Click the "Select a file" button to select a file
-												</p>
-												<FileInput onFileChange={handleFileChange} />
-											</div>
-										</div>
-										<div>
-											<p>3. Crop the uploaded image and enter the details</p>
-											{flow.step === "enter-details" && (
-												<Form method="post">
-													<div className="mb-8 space-y-1">
+									<>
+										<li>
+											<p className="mb-2">
+												Click the "Select a file" button to select a file
+											</p>
+											<FileInput onFileChange={handleFileChange} />
+										</li>
+										{match(flow)
+											.with({ step: "enter-details" }, ({ imageUrl }) => (
+												<li>
+													<p className="mb-2">
+														Crop the uploaded image and enter the details
+													</p>
+													<div className="mb-4">
 														<div className="w-[500px]">
 															<Cropper
-																src={flow.imageUrl}
+																src={imageUrl}
 																style={{ width: "100%" }}
 																viewMode={1}
 																// Cropper.js options
@@ -203,7 +188,6 @@ export default function FavoriteNewPage() {
 															/>
 														</div>
 													</div>
-
 													<div>
 														<Label htmlFor="title">Title</Label>
 														<div className="flex items-center space-x-1">
@@ -211,7 +195,7 @@ export default function FavoriteNewPage() {
 																type="text"
 																id="title"
 																name="title"
-																ref={inputRef}
+																ref={titleRef}
 															/>
 															<TooltipProvider>
 																<Tooltip>
@@ -260,68 +244,82 @@ export default function FavoriteNewPage() {
 															introduction page, etc.)
 														</p>
 													</div>
+													<input type="hidden" name="bodyType" value="image" />
 													<Button
 														type="submit"
 														progress={navigation.state === "submitting"}
 													>
 														Add fav
 													</Button>
-												</Form>
-											)}
-										</div>
-									</div>
+												</li>
+											))
+											.otherwise(() => (
+												<></>
+											))}
+									</>
 								))
 								.with("text", () => (
 									<>
 										<div>
 											<p>2. Enter the details</p>
-											<Form method="post">
-												<div className="mb-4 space-y-3">
-													<div>
-														<Label htmlFor="body">Content</Label>
-														<Textarea
-															id="body"
-															name="body"
-															placeholder="If I had an hour to solve a problem I'd spend 55 minutes thinking about the problem and 5 minutes thinking about solutions."
-														/>
-													</div>
-													<div>
-														<Label htmlFor="title">Title</Label>
-														<Input
-															type="text"
-															id="title"
-															name="title"
-															placeholder="Albert Einstein - Problem Solving"
-														/>
-													</div>
-													<div>
-														<Label htmlFor="referenceUrl">URL</Label>
-														<Input
-															type="text"
-															id="referenceUrl"
-															name="referenceUrl"
-															placeholder="https://www.goodreads.com/quotes/60780-if-i-had-an-hour-to-solve-a-problem-i-d"
-														/>
-														<p className="text-xs">
-															URL of the image reference (web page, book
-															introduction page, etc.)
-														</p>
-													</div>
+											<div className="mb-4 space-y-3">
+												<div>
+													<Label htmlFor="body">Content</Label>
+													<Textarea
+														id="body"
+														name="body"
+														placeholder="If I had an hour to solve a problem I'd spend 55 minutes thinking about the problem and 5 minutes thinking about solutions."
+													/>
 												</div>
-												<Button
-													type="submit"
-													progress={navigation.state === "submitting"}
-												>
-													Add fav
-												</Button>
-											</Form>
+												<div>
+													<Label htmlFor="title">Title</Label>
+													<Input
+														type="text"
+														id="title"
+														name="title"
+														placeholder="Albert Einstein - Problem Solving"
+													/>
+												</div>
+												<div>
+													<Label htmlFor="referenceUrl">URL</Label>
+													<Input
+														type="text"
+														id="referenceUrl"
+														name="referenceUrl"
+														placeholder="https://www.goodreads.com/quotes/60780-if-i-had-an-hour-to-solve-a-problem-i-d"
+													/>
+													<p className="text-xs">
+														URL of the image reference (web page, book
+														introduction page, etc.)
+													</p>
+												</div>
+											</div>
+											<Button
+												type="submit"
+												progress={navigation.state === "submitting"}
+											>
+												Add fav
+											</Button>
 										</div>
 									</>
 								))
 								.exhaustive()}
+						</ol>
+						<div className="relative">
+							<div className="sticky top-0 pt-4">
+								<Favorite
+									variant={"fixWidth"}
+									className="w-[300px]"
+									type="image"
+									title={formData.title || "Title"}
+									imageUrl={cropped800WidthBase64Url ?? ""}
+									createdAt={new Date().toUTCString()}
+									preview
+								/>
+							</div>
 						</div>
 					</div>
-				</div>
+				</Form>
 			</div>
 		</MainLayout>
 	);

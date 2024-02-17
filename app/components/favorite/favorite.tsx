@@ -1,8 +1,14 @@
 import { VariantProps, cva } from "class-variance-authority";
-import { ArrowDownRightIcon } from "lucide-react";
+import { ArrowDownRightIcon, ImageIcon } from "lucide-react";
 import { match } from "ts-pattern";
 import { formatDateTime } from "~/lib/formatter";
 import { cn } from "~/lib/utils";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "../ui/tooltip";
 import { FavoriteImage, FavoriteImageProps } from "./favorite-image";
 import { FavoriteText, FavoriteTextProps } from "./favorite-text";
 
@@ -49,14 +55,40 @@ export const Favorite: React.FC<
 		<div className="flex flex-col h-full">
 			<div className="text-xs mb-2">
 				<p className="text-ellipsis overflow-hidden whitespace-nowrap">
-					{title}
+					{preview ? (
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>{title}</TooltipTrigger>
+								<TooltipContent asChild>
+									<span>Enter the title after selecting an image</span>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					) : (
+						title
+					)}
 				</p>
 			</div>
 			<div className="overflow-hidden mb-1">
 				{match(props)
-					.with({ type: "image" }, (favoriteImage) => (
-						<FavoriteImage {...favoriteImage} />
-					))
+					.with({ type: "image" }, (favoriteImage) =>
+						favoriteImage.imageUrl === "" && preview ? (
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<div className="w-full flex items-center justify-center aspect-[4/3] border border-slate-900">
+											<ImageIcon className="w-40 h-40" strokeWidth={0.1} />
+										</div>
+									</TooltipTrigger>
+									<TooltipContent>
+										Click the "Select a file" button to select a file
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						) : (
+							<FavoriteImage {...favoriteImage} />
+						),
+					)
 					.with({ type: "text" }, (favoriteText) => (
 						<FavoriteText {...favoriteText} />
 					))
@@ -65,15 +97,32 @@ export const Favorite: React.FC<
 					))}
 			</div>
 			<div>
-				{reference && (
-					<a
-						className="text-xs flex hover:underline items-center"
-						href={reference.title}
-					>
-						<ArrowDownRightIcon className="h-5 w-5 mr-1 -ml-1 flex-shrink-0" />
-						<p className="text-ellipsis overflow-hidden">{reference.title}</p>
-					</a>
-				)}
+				{reference &&
+					(preview ? (
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>
+									<span className="text-xs flex hover:underline items-center">
+										<ArrowDownRightIcon className="h-5 w-5 mr-1 -ml-1 flex-shrink-0" />
+										<p className="text-ellipsis overflow-hidden">
+											{reference.title}
+										</p>
+									</span>
+								</TooltipTrigger>
+								<TooltipContent asChild>
+									<span>Enter the URL after selecting an image</span>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					) : (
+						<a
+							className="text-xs flex hover:underline items-center"
+							href={reference.title}
+						>
+							<ArrowDownRightIcon className="h-5 w-5 mr-1 -ml-1 flex-shrink-0" />
+							<p className="text-ellipsis overflow-hidden">{reference.title}</p>
+						</a>
+					))}
 			</div>
 			<div className="mt-auto flex justify-end">
 				<p className="text-xs text-slate-700">

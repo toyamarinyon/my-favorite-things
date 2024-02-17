@@ -1,8 +1,22 @@
 import { createId } from "@paralleldrive/cuid2";
 import { ActionFunctionArgs } from "@remix-run/cloudflare";
-import { merge, object, omit, parse, string } from "valibot";
+import { match } from "ts-pattern";
+import {
+	Input,
+	literal,
+	merge,
+	object,
+	omit,
+	parse,
+	string,
+	union,
+} from "valibot";
 import { drizzle } from "~/db/drizzle";
-import { favorites, insertFavoriteSchema } from "~/db/favorites";
+import {
+	BodyTypeSchema,
+	favorites,
+	insertFavoriteSchema,
+} from "~/db/favorites";
 import { findUserByActionFunctionArgs } from "../helpers/findUserByActionFunctionArgs";
 
 const parsePageTitle = async (url?: string | null | undefined) => {
@@ -21,40 +35,46 @@ const parsePageTitle = async (url?: string | null | undefined) => {
 	return title[1] as string;
 };
 
-const createFavoriteInputSchema = omit(
+const createImageFavoriteInputSchema = omit(
 	merge([insertFavoriteSchema, object({ dataUrl: string() })]),
-	["objectId"],
+	["body", "bodyType"],
 );
 export const createFavorite = async (args: ActionFunctionArgs) => {
 	const user = await findUserByActionFunctionArgs(args);
 	const formData = await args.request.formData();
+	const unsafeBodyType = formData.get("bodyType");
 	const title = formData.get("title");
+	const body = formData.get("body");
 	const dataUrl = formData.get("dataUrl");
 	const referenceUrl = formData.get("referenceUrl");
+	const bodyType = parse(BodyTypeSchema, unsafeBodyType);
+	const db = drizzle(args.context.env as Env);
+	await match(bodyType)
+		.with("image", async () => {
+			const input = parse(createImageFavoriteInputSchema, {
+				title,
+				userId: user?.id,
+				dataUrl,
+				referenceUrl,
+			});
+			const [prefix, data] = input.dataUrl.split(",");
+			const mimeType = prefix.match(/:(.*?);/)?.[1];
 
-	const input = parse(createFavoriteInputSchema, {
-		title,
-		userId: user?.id,
-		referenceUrl,
-		dataUrl,
-	});
+			const file = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
 
-	const [prefix, data] = input.dataUrl.split(",");
-	const mimeType = prefix.match(/:(.*?);/)?.[1];
-
-	const file = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
-
-	const env = args.context.env as Env;
-	const bucket = env.BUCKET;
-	const objectId = createId();
-	await bucket.put(objectId, file, { httpMetadata: { contentType: mimeType } });
-
-	const referenceTitle = await parsePageTitle(input.referenceUrl);
-
-	const db = drizzle(env);
-	await db.insert(favorites).values({
-		...input,
-		objectId,
-		referenceTitle,
-	});
+			const env = args.context.env as Env;
+			const bucket = env.BUCKET;
+			const objectId = createId();
+			await bucket.put(objectId, file, {
+				httpMetadata: { contentType: mimeType },
+			});
+			const referenceTitle = await parsePageTitle(input.referenceUrl);
+			await db.insert(favorites).values({
+				...input,
+				body: objectId,
+				bodyType,
+				referenceTitle,
+			});
+		})
+		.otherwise(() => {});
 };
