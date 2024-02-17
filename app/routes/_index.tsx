@@ -1,6 +1,7 @@
 import { getAuth } from "@clerk/remix/ssr.server";
 import { LoaderFunctionArgs, json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
+import { match } from "ts-pattern";
 import { Favorite, transform } from "~/components/favorite";
 import { MainLayout } from "~/components/layout/main";
 import { findFavoritesByUserId } from "~/functions/favorites/findFavoritesByUserId";
@@ -29,16 +30,33 @@ export default function Index() {
 		<MainLayout>
 			<div className="divide-y divide-slate-400">
 				<div className="flex flex-wrap -mr-1">
-					{data.favorites.map(({ title, id, body, reference, createdAt }) => (
-						<Favorite
-							key={id}
-							type="image"
-							title={title}
-							imageUrl={`/favorites/${body}/image`}
-							reference={reference}
-							createdAt={createdAt}
-						/>
-					))}
+					{data.favorites.map(
+						({ title, id, body, reference, createdAt, bodyType }) =>
+							match(bodyType)
+								.with("image", () => (
+									<Favorite
+										key={id}
+										id={id}
+										type="image"
+										title={title}
+										imageUrl={`/favorites/${body}/image`}
+										reference={reference}
+										createdAt={createdAt}
+									/>
+								))
+								.with("text", () => (
+									<Favorite
+										key={id}
+										id={id}
+										type="text"
+										title={title}
+										text={body}
+										reference={reference}
+										createdAt={createdAt}
+									/>
+								))
+								.exhaustive(),
+					)}
 					{/* <Favorite
             type="image"
             title="Relevence Onboarding UI"

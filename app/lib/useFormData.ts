@@ -11,7 +11,7 @@ export const useFormData = () => {
 		setFormData(
 			Object.fromEntries(newFormData.entries()) as Record<string, string>,
 		);
-	}, [formRef]);
+	}, []);
 	useEffect(() => {
 		if (formRef.current == null) {
 			return;
@@ -20,7 +20,7 @@ export const useFormData = () => {
 		return () => {
 			formRef.current?.removeEventListener("change", updateFormData);
 		};
-	}, [formRef]);
+	}, [updateFormData]);
 
 	return {
 		formRef,

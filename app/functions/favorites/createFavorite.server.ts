@@ -1,22 +1,10 @@
 import { createId } from "@paralleldrive/cuid2";
 import { ActionFunctionArgs } from "@remix-run/cloudflare";
+import invariant from "tiny-invariant";
 import { match } from "ts-pattern";
-import {
-	Input,
-	literal,
-	merge,
-	object,
-	omit,
-	parse,
-	string,
-	union,
-} from "valibot";
+import { minLength, parse, string, transform } from "valibot";
 import { drizzle } from "~/db/drizzle";
-import {
-	BodyTypeSchema,
-	favorites,
-	insertFavoriteSchema,
-} from "~/db/favorites";
+import { BodyTypeSchema, favorites } from "~/db/favorites";
 import { findUserByActionFunctionArgs } from "../helpers/findUserByActionFunctionArgs";
 
 const parsePageTitle = async (url?: string | null | undefined) => {
@@ -35,46 +23,40 @@ const parsePageTitle = async (url?: string | null | undefined) => {
 	return title[1] as string;
 };
 
-const createImageFavoriteInputSchema = omit(
-	merge([insertFavoriteSchema, object({ dataUrl: string() })]),
-	["body", "bodyType"],
-);
 export const createFavorite = async (args: ActionFunctionArgs) => {
+	const env = args.context.env as Env;
 	const user = await findUserByActionFunctionArgs(args);
+	invariant(user, "User not found");
 	const formData = await args.request.formData();
-	const unsafeBodyType = formData.get("bodyType");
-	const title = formData.get("title");
-	const body = formData.get("body");
-	const dataUrl = formData.get("dataUrl");
-	const referenceUrl = formData.get("referenceUrl");
-	const bodyType = parse(BodyTypeSchema, unsafeBodyType);
-	const db = drizzle(args.context.env as Env);
-	await match(bodyType)
-		.with("image", async () => {
-			const input = parse(createImageFavoriteInputSchema, {
-				title,
-				userId: user?.id,
-				dataUrl,
-				referenceUrl,
-			});
-			const [prefix, data] = input.dataUrl.split(",");
-			const mimeType = prefix.match(/:(.*?);/)?.[1];
+	const bodyType = parse(BodyTypeSchema, formData.get("bodyType"));
+	const body = match(bodyType)
+		.with("text", () => parse(string([minLength(1)]), formData.get("body")))
+		.with("image", () => createId())
+		.exhaustive();
+	if (bodyType === "image") {
+		const dataUrl = parse(string([minLength(1)]), formData.get("dataUrl"));
+		const [prefix, data] = dataUrl.split(",");
+		const mimeType = prefix.match(/:(.*?);/)?.[1];
 
-			const file = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+		const file = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
 
-			const env = args.context.env as Env;
-			const bucket = env.BUCKET;
-			const objectId = createId();
-			await bucket.put(objectId, file, {
-				httpMetadata: { contentType: mimeType },
-			});
-			const referenceTitle = await parsePageTitle(input.referenceUrl);
-			await db.insert(favorites).values({
-				...input,
-				body: objectId,
-				bodyType,
-				referenceTitle,
-			});
-		})
-		.otherwise(() => {});
+		const bucket = env.BUCKET;
+		await bucket.put(body, file, {
+			httpMetadata: { contentType: mimeType },
+		});
+	}
+	const referenceUrl = parse(
+		transform(string(), (input) => (input === "" ? null : input)),
+		formData.get("referenceUrl"),
+	);
+	const referenceTitle = await parsePageTitle(referenceUrl);
+	const db = drizzle(env);
+	await db.insert(favorites).values({
+		userId: user.id,
+		title: parse(string([minLength(1)]), formData.get("title")),
+		body,
+		bodyType,
+		referenceTitle,
+		referenceUrl,
+	});
 };

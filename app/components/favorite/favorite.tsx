@@ -1,3 +1,4 @@
+import { Link } from "@remix-run/react";
 import { VariantProps, cva } from "class-variance-authority";
 import { ArrowDownRightIcon, ImageIcon } from "lucide-react";
 import { match } from "ts-pattern";
@@ -32,6 +33,7 @@ type Reference = {
 	title: string;
 };
 type FavoriteGlance = {
+	id: string;
 	title: string;
 	reference?: Reference | null;
 	createdAt: string;
@@ -42,7 +44,15 @@ interface FavoriteVariants
 		VariantProps<typeof favoriteVariants> {}
 export const Favorite: React.FC<
 	FavoriteGlance & FavoriteProps & FavoriteVariants
-> = ({ className, variant, title, reference, preview = false, ...props }) => (
+> = ({
+	id,
+	className,
+	variant,
+	title,
+	reference,
+	preview = false,
+	...props
+}) => (
 	<div className={cn(favoriteVariants({ variant, className }))}>
 		{preview && (
 			<div
@@ -65,7 +75,7 @@ export const Favorite: React.FC<
 							</Tooltip>
 						</TooltipProvider>
 					) : (
-						title
+						<Link to={`/f/${id}`}>{title}</Link>
 					)}
 				</p>
 			</div>
@@ -117,7 +127,7 @@ export const Favorite: React.FC<
 					) : (
 						<a
 							className="text-xs flex hover:underline items-center"
-							href={reference.title}
+							href={reference.url}
 						>
 							<ArrowDownRightIcon className="h-5 w-5 mr-1 -ml-1 flex-shrink-0" />
 							<p className="text-ellipsis overflow-hidden">{reference.title}</p>

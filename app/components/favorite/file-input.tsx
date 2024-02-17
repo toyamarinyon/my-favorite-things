@@ -17,6 +17,7 @@ export const FileInput: React.FC<FileInputProps> = ({ onFileChange }) => {
 				return;
 			}
 			onFileChange(e.target.files[0]);
+			e.target.value = "";
 		},
 		[onFileChange],
 	);

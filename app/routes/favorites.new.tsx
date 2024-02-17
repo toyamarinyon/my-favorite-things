@@ -120,7 +120,7 @@ export default function FavoriteNewPage() {
 		}
 		titleRef.current.value = analyzeImage.data.analyze;
 		updateFormData();
-	}, [analyzeImage.data, titleRef]);
+	}, [analyzeImage.data, updateFormData]);
 	const navigation = useNavigation();
 	const [favoriteType, setFavoriteType] = useState<BodyType>("image");
 	const handleFavoriteTypeChange = useCallback((newFavoriteType: string) => {
@@ -294,6 +294,7 @@ export default function FavoriteNewPage() {
 													</p>
 												</div>
 											</div>
+											<input type="hidden" name="bodyType" value="text" />
 											<Button
 												type="submit"
 												progress={navigation.state === "submitting"}
@@ -307,15 +308,32 @@ export default function FavoriteNewPage() {
 						</ol>
 						<div className="relative">
 							<div className="sticky top-0 pt-4">
-								<Favorite
-									variant={"fixWidth"}
-									className="w-[300px]"
-									type="image"
-									title={formData.title || "Title"}
-									imageUrl={cropped800WidthBase64Url ?? ""}
-									createdAt={new Date().toUTCString()}
-									preview
-								/>
+								{match(favoriteType)
+									.with("image", () => (
+										<Favorite
+											id="new"
+											variant={"fixWidth"}
+											className="w-[300px]"
+											type="image"
+											title={formData.title || "Title"}
+											imageUrl={cropped800WidthBase64Url ?? ""}
+											createdAt={new Date().toUTCString()}
+											preview
+										/>
+									))
+									.with("text", () => (
+										<Favorite
+											id="new"
+											variant={"fixWidth"}
+											className="w-[300px]"
+											type="text"
+											title={formData.title || "Title"}
+											text={formData.body || "Your favorite text here"}
+											createdAt={new Date().toUTCString()}
+											preview
+										/>
+									))
+									.exhaustive()}
 							</div>
 						</div>
 					</div>
