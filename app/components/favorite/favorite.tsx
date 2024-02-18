@@ -19,7 +19,7 @@ const favoriteVariants = cva(
 	{
 		variants: {
 			variant: {
-				default: "w-1/3 xl:w-1/4 2xl:w-1/5",
+				default: "w-full lg:w-1/3 xl:w-1/4 2xl:w-1/5",
 				fixWidth: "",
 			},
 		},
