@@ -128,6 +128,8 @@ export const Favorite: React.FC<
 						<a
 							className="text-xs flex hover:underline items-center"
 							href={reference.url}
+							target="_blank"
+							rel="noopener noreferrer"
 						>
 							<ArrowDownRightIcon className="h-5 w-5 mr-1 -ml-1 flex-shrink-0" />
 							<p className="text-ellipsis overflow-hidden">{reference.title}</p>

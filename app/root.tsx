@@ -13,6 +13,11 @@ import {
 import stylesheet from "~/globals.css";
 
 export const links: LinksFunction = () => [
+	{
+		rel: "icon",
+		href: "/favicon.svg",
+		type: "image/svg+xml",
+	},
 	{ rel: "stylesheet", href: stylesheet },
 	{
 		rel: "stylesheet",
