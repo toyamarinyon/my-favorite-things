@@ -19,17 +19,20 @@ export const MainLayout: React.FC<PropsWithChildren<MainLayoutProps>> = ({
 		<div>
 			<header>
 				<div className="flex h-14 items-center px-4">
-					<div className="flex items-center">
-						<p className="sono mr-1 text-lg">
-							{username == null ? "My" : `${username}'s`} favorites
+					<div className="sono mr-1 text-lg flex flex-col lg:flex-row leading-none">
+						<p className="mr-2 sono">
+							{username == null ? "My" : `${username}'s`}
 						</p>
-						<HeartIcon className="h-4 w-4 fill-slate-800 text-slate-800" />
+						<div className="flex items-center">
+							<p className="mr-1 sono">favorites</p>
+							<HeartIcon className="h-4 w-4 fill-slate-800 text-slate-800" />
+						</div>
 					</div>
 					{actions && (
 						<div className="ml-auto flex items-center space-x-2">
 							{userId == null ? (
 								<>
-									<Link to="/">
+									<Link to="/" className="hidden lg:block">
 										<Button>Create your favorites</Button>
 									</Link>
 									<SignInButton mode="modal">

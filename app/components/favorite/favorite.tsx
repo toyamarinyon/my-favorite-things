@@ -132,7 +132,9 @@ export const Favorite: React.FC<
 							rel="noopener noreferrer"
 						>
 							<ArrowDownRightIcon className="h-5 w-5 mr-1 -ml-1 flex-shrink-0" />
-							<p className="text-ellipsis overflow-hidden">{reference.title}</p>
+							<p className="text-ellipsis overflow-hidden whitespace-nowrap">
+								{reference.title}
+							</p>
 						</a>
 					))}
 			</div>
