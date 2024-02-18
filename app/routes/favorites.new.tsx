@@ -95,7 +95,7 @@ export default function FavoriteNewPage() {
 	const [flow, setFlow] = useState<AddNewFavoriteFlow>({
 		step: "select-image",
 	});
-	const handleFileChange = useCallback((file: File) => {
+	const handleFileChange = useCallback((file: File | Blob) => {
 		const objectUrl = URL.createObjectURL(file);
 		setFlow({
 			step: "enter-details",
@@ -160,7 +160,7 @@ export default function FavoriteNewPage() {
 									<>
 										<li>
 											<p className="mb-2">
-												Click the "Select a file" button to select a file
+												Select an image to add as a favorite
 											</p>
 											<FileInput onFileChange={handleFileChange} />
 										</li>
